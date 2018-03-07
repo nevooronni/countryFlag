@@ -1,0 +1,144 @@
+<!--import polymer element-->
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<!--import the app-layout element-->
+<link rel="import" href="../../bower_components/app-layout/app-layout.html">
+<!--import the iron-image element-->
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+<!--import the paper-button element-->
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<!--import the paper-styles element-->
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<!--import the iro-ajax element-->
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="whole-flag-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+        font-family: Roboto, Noto, sans-serif;
+      }
+      paper-button {
+        color: white;
+      }
+      paper-button.another {
+        background: var(--paper-blue-500);
+        width: 100%;
+      }
+      paper-button.another:hover {
+        background: var(--paper-light-blue-500);
+      }
+      paper-button.answer {
+        background: var(--paper-purple-500);
+        flex-grow: 1;
+      }
+      paper-button.answer:hover {
+        background: var(--paper-pink-500);
+      }
+      app-toolbar {
+        background-color: var(--paper-blue-500);
+        color: white;
+        margin: 20px 0;
+      }
+      iron-image {
+        border: solid;
+        width: 100%;
+        --iron-image-width: 100%;
+         background-color: white;
+      }
+      #flag-image-container {
+        max-width: 600px;
+        width: 100%;
+        margin: 0 auto;
+      }
+      #answer-button-container {
+        display: flex; /* or inline-flex */
+        flex-flow: row wrap;
+        justify-content:space-around;
+      }
+    </style>
+    <!--added custom elements app-header and app-toolbar-->
+    <app-header>
+      <app-toolbar>
+        <div main-title>Whose flag is this?</div>
+      </app-toolbar>
+    </app-header>
+    <iron-ajax 
+      auto
+      url="data/countrycodes.json"
+      handle-as="json"
+      on-response="_handleResponse"></iron-ajax><!--auto setting make iron load automatically and on-response specifies the function called _handleresponse when iron-ajax recieves a response which is an event listener-->
+    <div id="flag-image-container">
+      <iron-image
+        id="flag-image"
+        preload fade src="data/svg/[[correctAnswer.code]].svg"><!--preload prevent image from prematurely reloading the fade attribut implements a nice fade effect-->
+      </iron-image>
+      <div id="answer-button-container">
+        <paper-button id="optionA" class="answer" on-click="_selectAnswer">[[countryA.name]]</paper-button><!--this is data binding-->
+        <paper-button id="optionB" class="answer" on-click="_selectAnswer">[[countryB.name]]</paper-button><!--this is data binding-->
+      </div>
+      <p>[[outputMessage]]</p>
+      <paper-button class="another" id="another" on-click="__restart">Another!</paper-button>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class WholeFlagApp extends Polymer.Element {
+      static get is() { return 'whole-flag-app'; }
+      static get properties() {
+        return {
+          countryA: {
+            type: Object
+          },
+          countryB: {
+            type: Object
+          },
+          outputMessage: {
+            type: String,
+            value: ""
+          },
+          correctAnswer: {
+            type: Object
+          },
+          userAnswer: {
+            type: String,
+            value: "Brazil"
+          },
+          countryList: {
+            type: Object
+          }
+        };
+      }
+      _selectAnswer(event) {
+        let clickedButton = event.target;
+        this.userAnswer = clickedButton.textContent;
+        if (this.userAnswer == this.correctAnswer.name) {
+          this.outputMessage = `${this.userAnswer} is correct!`;
+        } 
+        else {
+          this.outputMessage = `Nope! The correct answer is ${this.correctAnswer.name} !`;
+        }
+      }
+      _handleResponse(event) {
+        this.countryList = event.detail.response.countrycodes;
+        this.countryA = this.countryList[this.__getRandomCountry()];
+        this.countryB = this.countryList[this.__getRandomCountry()];
+        this.correctAnswer = this.countryA;
+        let coin = (Math.floor(Math.random() * 2));//randomizes which button answer is correct
+        this.correctAnswer = coin == 1 ? this.countryA : this.countryB;//sets correct answer to that button
+      }
+      __getRandomCountry() {
+        return Math.floor(Math.random() * (this.countryList.length));
+      }
+      __restart() {
+        window.location.reload();
+      }
+    }
+
+    window.customElements.define(WholeFlagApp.is, WholeFlagApp);
+  </script>
+</dom-module>

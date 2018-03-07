@@ -1,0 +1,7 @@
+{
+  "name": "whole-flag",
+  "short_name": "whole-flag",
+  "description": "flag application",
+  "start_url": "/",
+  "display": "standalone"
+}
